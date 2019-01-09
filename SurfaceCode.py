@@ -1,4 +1,10 @@
 #!/usr/bin/python
+import sys
+
+import sqlite3
+import numpy as np
+import copy
+
 class SurfaceCode:
 
     """
@@ -27,8 +33,7 @@ class SurfaceCode:
         pax=0,
         pay=0,
         paz=0,
-        pm=0,
-        ):
+        pm=0):
 
         # # # Git version and seed # # #
 

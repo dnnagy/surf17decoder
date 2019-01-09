@@ -4,13 +4,13 @@ import sqlite3
 import numpy as np
 import copy
 
-import SurfaceCode
-
+from SurfaceCode import SurfaceCode
 """
 Generate data for surface17 code
 """
+
 class QECDataGenerator:
-  """ Copyright 2017 Paul Baireuther. All Rights Reserved.
+  """Copyright 2017 Paul Baireuther. All Rights Reserved.
   ====================================================
   
   This code implements a simplified Pauli error channel model for odd distance,
@@ -35,13 +35,14 @@ class QECDataGenerator:
     self.train_size = train_size
     self.validation_size = validation_size
     self.test_size = test_size
-    return
 
-  def convert_simple(data, Nmin, Nmax):
+  def convert_simple(self, data, Nmin, Nmax):
+    
     # The circuit model outputs a final syndrome increment and a parity after
     # each error correction cycle. This function removes all of them except the
     # one after the last error correction cycle. The number of cycles iterates
     # between Nmin and Nmax.
+    
     n = Nmin
     data_converted = []
     for dat in data:
@@ -77,10 +78,10 @@ class QECDataGenerator:
     # this variable can be set to zero.
     error_model_gitv = 0
 
-    # # # CODE DISTANCE # # #
+    ### CODE DISTANCE ###
     dist = 3
 
-    # # # MODE # # #
+    ### MODE ###
     # Training data is used for training, validation data for feedback
     # during training and early stopping, and test data for the curves
     # shown in the paper [3].
@@ -92,9 +93,6 @@ class QECDataGenerator:
     """ WARNING: Existing databases will be overwritten! """
     # Directory where the database will be stored
     db_path = "./data/"
-
-    # The file name will be base + suffix
-    base = filename_base
     
     # The suffix is generate according to the mode.
     if mode == 0:
@@ -104,10 +102,10 @@ class QECDataGenerator:
     elif mode == 2:
       suffix = "_test.db"
 
-    fname = base + suffix
-    print("The database will be written to", db_path + fname + suffix)
+    fname = self.filename_base + suffix
+    print("The database will be written to ", db_path + fname + suffix)
 
-    # # # PARAMETERS OF THE ERROR MODEL # # #
+    ### PARAMETERS OF THE ERROR MODEL ###
 
     # (Approximate) physical error rate per cycle, assuming px=py=pz.
     p_phys = 0.01
@@ -116,7 +114,7 @@ class QECDataGenerator:
     # from fy=0 to fy=2. fy=1 corresponds to an isotropic error model.
     fy = 1
 
-    # # # AUTOMATICALLY CALCULATED PARAMETERS # # #
+    # # # AUTOMATICALLY CALCULATED PARAMETERS ###
     # There are seven steps in the circuit model, the error probability
     # per step is given by
     p_per_step = p_phys / 7.
@@ -143,15 +141,15 @@ class QECDataGenerator:
     # n_steps_max error cycles.
     if mode == 0:
       #N_samples = 4 * 10**6
-      N_samples = train_size
+      N_samples = self.train_size
       n_steps_min, n_steps_max = 11, 20
     elif mode == 1:
       #N_samples = 10**4
-      N_samples = validation_size
+      N_samples = self.validation_size
       n_steps_min, n_steps_max = 81, 100
     elif mode == 2:
       #N_samples = 5 * 10**4
-      N_samples = test_size
+      N_samples = self.test_size
       n_steps_min, n_steps_max = 1, 500
 
     # Generate seeds.
@@ -217,7 +215,7 @@ class QECDataGenerator:
       # data that we do not need in order to to save memory (for example
       # syndromes and error signals contain the same information, and the
       # network uses only the error signals.
-      runs_processed = convert_simple(runs, Nmin=n_steps_min, Nmax=n_steps_max)
+      runs_processed = self.convert_simple(runs, Nmin=n_steps_min, Nmax=n_steps_max)
 
       # save in database
       c.executemany('REPLACE INTO data VALUES (?, ?, ?, ?, ?)', runs_processed)
