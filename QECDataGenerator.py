@@ -71,195 +71,177 @@ class QECDataGenerator:
 
     return data_converted
 
-    def generate(self, _mode):
-      # # # GIT VERSION # # #
-      # If the error model is not under git version control,
-      # this variable can be set to zero.
-      error_model_gitv = 0
+  def generate(self, _mode):
+    # # # GIT VERSION # # #
+    # If the error model is not under git version control,
+    # this variable can be set to zero.
+    error_model_gitv = 0
 
-      # # # CODE DISTANCE # # #
-      dist = 3
+    # # # CODE DISTANCE # # #
+    dist = 3
 
-      # # # MODE # # #
-      # Training data is used for training, validation data for feedback
-      # during training and early stopping, and test data for the curves
-      # shown in the paper [3].
-      # mode = 0: training data set, seeds from 0 ... N_train
-      # mode = 1: validation data set, seeds from 10**8 ... 10**8 + N_validation
-      # mode = 2: testing data set, seeds from 2*10**8 ... 2*10**8 + N_test
-      mode = _mode
+    # # # MODE # # #
+    # Training data is used for training, validation data for feedback
+    # during training and early stopping, and test data for the curves
+    # shown in the paper [3].
+    # mode = 0: training data set, seeds from 0 ... N_train
+    # mode = 1: validation data set, seeds from 10**8 ... 10**8 + N_validation
+    # mode = 2: testing data set, seeds from 2*10**8 ... 2*10**8 + N_test
+    mode = _mode
 
-      """ WARNING: Existing databases will be overwritten! """
-      # Directory where the database will be stored
-      db_path = "./data/"
+    """ WARNING: Existing databases will be overwritten! """
+    # Directory where the database will be stored
+    db_path = "./data/"
 
-      # The file name will be base + suffix
-      base = filename_base
+    # The file name will be base + suffix
+    base = filename_base
+    
+    # The suffix is generate according to the mode.
+    if mode == 0:
+      suffix = "_train.db"
+    elif mode == 1:
+      suffix = "_validation.db"
+    elif mode == 2:
+      suffix = "_test.db"
 
-      # The suffix is generate according to the mode.
-      if mode == 0:
-        suffix = "_train.db"
-      elif mode == 1:
-        suffix = "_validation.db"
-      elif mode == 2:
-        suffix = "_test.db"
+    fname = base + suffix
+    print("The database will be written to", db_path + fname + suffix)
 
-      fname = base + suffix
-      print("The database will be written to", db_path + fname + suffix)
+    # # # PARAMETERS OF THE ERROR MODEL # # #
 
-      # # # PARAMETERS OF THE ERROR MODEL # # #
+    # (Approximate) physical error rate per cycle, assuming px=py=pz.
+    p_phys = 0.01
 
-      # (Approximate) physical error rate per cycle, assuming px=py=pz.
-      p_phys = 0.01
+    # In figure 4 of [3] we increase the y-error rate using a prefactor fy,
+    # from fy=0 to fy=2. fy=1 corresponds to an isotropic error model.
+    fy = 1
 
-      # In figure 4 of [3] we increase the y-error rate using a prefactor fy,
-      # from fy=0 to fy=2. fy=1 corresponds to an isotropic error model.
-      fy = 1
+    # # # AUTOMATICALLY CALCULATED PARAMETERS # # #
+    # There are seven steps in the circuit model, the error probability
+    # per step is given by
+    p_per_step = p_phys / 7.
 
-      # # # AUTOMATICALLY CALCULATED PARAMETERS # # #
+    # There are x, y, and z-errors. The error probability per qubit and
+    # step is set to
+    p = p_per_step / 3.
 
-      # There are seven steps in the circuit model, the error probability
-      # per step is given by
-      p_per_step = p_phys / 7.
+    # X-, y-, z-error probabilities on the data qubits.
+    pqx, pqy, pqz = p, p * fy, p
 
-      # There are x, y, and z-errors. The error probability per qubit and
-      # step is set to
-      p = p_per_step / 3.
+    # X-, y-, z-error probabilities on the ancilla qubits.
+    pax, pay, paz = p, p * fy, p
 
-      # X-, y-, z-error probabilities on the data qubits.
-      pqx, pqy, pqz = p, p * fy, p
+    # Measurement error probability at readout (same for ancilla- and data-qubits).
+    pm = p_per_step
+    
+    # # # DETAILS REGARDING THE DIFFERENT DATA SETS # # #
 
-      # X-, y-, z-error probabilities on the ancilla qubits.
-      pax, pay, paz = p, p * fy, p
+    # The seeds are N0, N0+1, ..., N0+N_samples-1.
+    N0 = mode * 10**8
 
-      # Measurement error probability at readout (same for ancilla- and
-      # data-qubits).
-      pm = p_per_step
+    # Each data set contains N_samples examples, which consists of n_steps_min to
+    # n_steps_max error cycles.
+    if mode == 0:
+      #N_samples = 4 * 10**6
+      N_samples = train_size
+      n_steps_min, n_steps_max = 11, 20
+    elif mode == 1:
+      #N_samples = 10**4
+      N_samples = validation_size
+      n_steps_min, n_steps_max = 81, 100
+    elif mode == 2:
+      #N_samples = 5 * 10**4
+      N_samples = test_size
+      n_steps_min, n_steps_max = 1, 500
 
-      # # # DETAILS REGARDING THE DIFFERENT DATA SETS # # #
+    # Generate seeds.
+    seeds = range(N0, N0 + N_samples)
 
-      # The seeds are N0, N0+1, ..., N0+N_samples-1.
-      N0 = mode * 10**8
+    print("Error probability on the physical data qubits in percent: (x, y, z) =", round(pqx * 100, 4), round(pqy * 100, 4), round(pqz * 100, 4))
+    print("Error probability on the ancilla qubits in percent: (x, y, z) =", round(pax * 100, 4), round(pay * 100, 4), round(paz * 100, 4))
+    print("Measurement error probability on both ancilla and data qubits in percent:", round(pm * 100, 4))
+    
+    # # # DATABASE # # #
+    
+    # Generate the database
+    conn = sqlite3.connect(db_path + fname)
+    c = conn.cursor()
 
-      # Each data set contains N_samples examples, which consists of n_steps_min to
-      # n_steps_max error cycles.
-      if mode == 0:
-        #N_samples = 4 * 10**6
-        N_samples = train_size
-        n_steps_min, n_steps_max = 11, 20
-      elif mode == 1:
-        #N_samples = 10**4
-        N_samples = validation_size
-        n_steps_min, n_steps_max = 81, 100
-      elif mode == 2:
-        #N_samples = 5 * 10**4
-        N_samples = test_size
-        n_steps_min, n_steps_max = 1, 500
+    # Create tables
+    c.execute('''DROP TABLE IF EXISTS data''')
+    c.execute('''DROP TABLE IF EXISTS info''')
+    conn.commit()
 
-      # Generate seeds.
-      seeds = range(N0, N0 + N_samples)
+    # Table with info about the error rates
+    c.execute('''CREATE TABLE info (error_model_gitv, distance, pqx, pqy, pqz, pax, pay, paz, pm)''')
+    entries = [(error_model_gitv, dist, pqx, pqy, pqz, pax, pay, paz, pm)]
+    c.executemany('INSERT INTO info VALUES (?,?,?, ?,?,?, ?,?,?)', entries)
+    
+    if mode == 0 or mode == 1:
+      # table for the data
+      c.execute('''CREATE TABLE data (seed, events, err_signal, parity,
+                   length)''')
+      # seed is unique index
+      c.execute('''CREATE UNIQUE INDEX idx_data_seed ON data(seed)''')
+    elif mode == 2:
+      # table for the data
+      c.execute('''CREATE TABLE data (seed, syndromes, events, fstabs,
+                   err_signal, parities)''')
+      # seed is unique index
+      c.execute('''CREATE UNIQUE INDEX idx_data_seed ON data(seed)''')
 
-      print("Error probability on the physical data qubits in percent: (x, y, z) =",
-            round(pqx * 100, 4), round(pqy * 100, 4), round(pqz * 100, 4))
-      print("Error probability on the ancilla qubits in percent: (x, y, z) =",
-            round(pax * 100, 4), round(pay * 100, 4), round(paz * 100, 4))
-      print("Measurement error probability on both ancilla and data qubits in " +
-            "percent:", round(pm * 100, 4))
+    conn.commit()
 
-      # # # DATABASE # # #
-      
-      if use_pandas:
-        # Write info table to file with pandas
-        df = pd.DataFrame(columns=['error_model_gitv', 'distance', 'pqx', 'pqy', 'pqz', 'pax', 'pay', 'paz', 'pm'],
-                         data=[[error_model_gitv, dist, pqx, pqy, pqz, pax, pay, paz, pm]])
-        
-        print(df.head())
-        exit(0)
-        
-        
-      else: 
-        # Generate the database
-        conn = sqlite3.connect(db_path + fname)
-        c = conn.cursor()
+    # # # GENERATE AN INSTANCE OF THE CIRCUIT MODEL # # #
+    surf = SurfaceCode(seed=0,
+                       git_version=error_model_gitv,
+                       distance=dist,
+                       pqx=pqx, pqy=pqy, pqz=pqz,
+                       pax=pax, pay=pay, paz=paz,
+                       pm=pm)
 
-        # Create tables
-        c.execute('''DROP TABLE IF EXISTS data''')
-        c.execute('''DROP TABLE IF EXISTS info''')
-        conn.commit()
+    # # # TRAINING AND VALIDATION DATA # # #
 
-        # Table with info about the error rates
-        c.execute('''CREATE TABLE info (error_model_gitv, distance, pqx, pqy, pqz, pax, pay, paz, pm)''')
-        entries = [(error_model_gitv, dist, pqx, pqy, pqz, pax, pay, paz, pm)]
-        c.executemany('INSERT INTO info VALUES (?,?,?, ?,?,?, ?,?,?)', entries)
-      
-      
-      
-      
-      if mode == 0 or mode == 1:
-        # table for the data
-        c.execute('''CREATE TABLE data (seed, events, err_signal, parity,
-                     length)''')
-        # seed is unique index
-        c.execute('''CREATE UNIQUE INDEX idx_data_seed ON data(seed)''')
-      elif mode == 2:
-        # table for the data
-        c.execute('''CREATE TABLE data (seed, syndromes, events, fstabs,
-                     err_signal, parities)''')
-        # seed is unique index
-        c.execute('''CREATE UNIQUE INDEX idx_data_seed ON data(seed)''')
+    # This is data that is used by the network during training (directly or
+    # indirectly). Since we want to claim that the network can be trained on
+    # experimentally accessible data we can only use a single final stabilizer
+    # measurement and parity from each run.
 
+    if mode == 0 or mode == 1:
+      # We evaluate the error circuit
+      runs = []
+      for seed in seeds:
+        runs.append(surf.make_run(seed=seed, n_steps=n_steps_max, condensed=True))
+
+      # We remove all data that could not be obtained in an experiment and also
+      # data that we do not need in order to to save memory (for example
+      # syndromes and error signals contain the same information, and the
+      # network uses only the error signals.
+      runs_processed = convert_simple(runs, Nmin=n_steps_min, Nmax=n_steps_max)
+
+      # save in database
+      c.executemany('REPLACE INTO data VALUES (?, ?, ?, ?, ?)', runs_processed)
       conn.commit()
+      conn.close()
 
-      # # # GENERATE AN INSTANCE OF THE CIRCUIT MODEL # # #
-      surf = SurfaceCode(seed=0,
-                         git_version=error_model_gitv,
-                         distance=dist,
-                         pqx=pqx, pqy=pqy, pqz=pqz,
-                         pax=pax, pay=pay, paz=paz,
-                         pm=pm)
+    # # # TESTING DATA # # #
 
-      # # # TRAINING AND VALIDATION DATA # # #
+    # During testing we "oversample" the output of the error model, i.e., we
+    # store the final error signal and  parity after every stabilizer measurement
+    # cycle.
+    if mode == 2:
+      # evaluate the error circuit
+      runs = []
+      for seed in seeds:
+        runs.append(surf.make_run(seed=seed, n_steps=n_steps_max, condensed=True))
 
-      # This is data that is used by the network during training (directly or
-      # indirectly). Since we want to claim that the network can be trained on
-      # experimentally accessible data we can only use a single final stabilizer
-      # measurement and parity from each run.
+      # save in database
+      c.executemany('REPLACE INTO data VALUES (?, ?, ?, ?, ?, ?)', runs)
+      conn.commit()
+      conn.close()
 
-      if mode == 0 or mode == 1:
-        # We evaluate the error circuit
-        runs = []
-        for seed in seeds:
-          runs.append(surf.make_run(seed=seed, n_steps=n_steps_max, condensed=True))
-
-        # We remove all data that could not be obtained in an experiment and also
-        # data that we do not need in order to to save memory (for example
-        # syndromes and error signals contain the same information, and the
-        # network uses only the error signals.
-        runs_processed = convert_simple(runs, Nmin=n_steps_min, Nmax=n_steps_max)
-
-        # save in database
-        c.executemany('REPLACE INTO data VALUES (?, ?, ?, ?, ?)', runs_processed)
-        conn.commit()
-        conn.close()
-
-      # # # TESTING DATA # # #
-
-      # During testing we "oversample" the output of the error model, i.e., we
-      # store the final error signal and  parity after every stabilizer measurement
-      # cycle.
-      if mode == 2:
-        # evaluate the error circuit
-        runs = []
-        for seed in seeds:
-          runs.append(surf.make_run(seed=seed, n_steps=n_steps_max, condensed=True))
-
-        # save in database
-        c.executemany('REPLACE INTO data VALUES (?, ?, ?, ?, ?, ?)', runs)
-        conn.commit()
-        conn.close()
-
-      print("DONE")
-      return
+    print("DONE")
+    return
 
     # class SurfaceCode:
     #   """
