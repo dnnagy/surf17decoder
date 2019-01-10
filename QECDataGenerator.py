@@ -96,14 +96,17 @@ class QECDataGenerator:
     
     # The suffix is generate according to the mode.
     if mode == 0:
+      print("Generating training data...")
       suffix = "_train.db"
     elif mode == 1:
+      print("Generating validation data...")
       suffix = "_validation.db"
     elif mode == 2:
+      print("Generating test data...")
       suffix = "_test.db"
-
+    
+    # Filename
     fname = self.filename_base + suffix
-    print("The database will be written to ", db_path + fname + suffix)
 
     ### PARAMETERS OF THE ERROR MODEL ###
 
@@ -155,9 +158,12 @@ class QECDataGenerator:
     # Generate seeds.
     seeds = range(N0, N0 + N_samples)
 
-    print("Error probability on the physical data qubits in percent: (x, y, z) =", round(pqx * 100, 4), round(pqy * 100, 4), round(pqz * 100, 4))
-    print("Error probability on the ancilla qubits in percent: (x, y, z) =", round(pax * 100, 4), round(pay * 100, 4), round(paz * 100, 4))
-    print("Measurement error probability on both ancilla and data qubits in percent:", round(pm * 100, 4))
+    print("Error probability on the physical data qubits in percent: (x, y, z) =",
+          round(pqx * 100, 4), round(pqy * 100, 4), round(pqz * 100, 4))
+    print("Error probability on the ancilla qubits in percent: (x, y, z) =", round(pax * 100, 4),
+          round(pay * 100, 4), round(paz * 100, 4))
+    print("Measurement error probability on both ancilla and data qubits in percent:",
+          round(pm * 100, 4))
     
     # # # DATABASE # # #
     
@@ -237,9 +243,10 @@ class QECDataGenerator:
       c.executemany('REPLACE INTO data VALUES (?, ?, ?, ?, ?, ?)', runs)
       conn.commit()
       conn.close()
-
-    print("DONE")
-    return
+        
+    # Return the filename
+    print("The database is written to ", db_path + fname)
+    return db_path + fname
 
     # class SurfaceCode:
     #   """
