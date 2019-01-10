@@ -5,8 +5,10 @@ from keras.layers import Input, Dense, LSTM, Concatenate
 from keras.optimizers import SGD
 from keras.layers.normalization import BatchNormalization
 
-# This is a very simple model for decoding, containing only
-# 2 LSTM layers and a Dense layer.
+""" 
+This is a simple decoder, that gets only the syndromes (without final syndromes)
+and the measured parity. 
+"""
 class SimpleDecoder:
     def __init__(self, xshape, hidden_size=64):
         self.hidden_size=hidden_size
