@@ -1,7 +1,7 @@
 import keras
 from keras.models import Sequential
 from keras.models import Model
-from keras.layers import Input, Dense, LSTM, Merge
+from keras.layers import Input, Dense, LSTM, Concatenate
 from keras.optimizers import SGD
 from keras.layers.normalization import BatchNormalization
 
