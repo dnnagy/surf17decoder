@@ -85,7 +85,9 @@ class SimpleBatchGenerator(keras.utils.Sequence):
     else:
       raise ValueError("The only allowed data_types are: 'training','validation' and 'test'.")
     
-    c.execute("SELECT events, err_signal, parity, length FROM data ORDER BY RANDOM() LIMIT ?", (1, ))
+    query="SELECT events, err_signal, parity, length FROM data ORDER BY RANDOM() LIMIT 1"
+    c.execute(query)
+    # c.execute("SELECT events, err_signal, parity, length FROM data ORDER BY RANDOM() LIMIT ?", (1, ))
     sample = c.fetchmany(1)
     
     return sample
@@ -101,7 +103,9 @@ class SimpleBatchGenerator(keras.utils.Sequence):
     else:
       raise ValueError("The only allowed data_types are: 'training','validation' and 'test'.")
     
-    c.execute("SELECT events, err_signal, parity, length FROM data ORDER BY RANDOM() LIMIT ?", (self.batch_size, ))
+    query="SELECT events, err_signal, parity, length FROM data ORDER BY RANDOM() LIMIT " + str(self.batch_size)
+    c.execute(query)
+    # c.execute("SELECT events, err_signal, parity, length FROM data ORDER BY RANDOM() LIMIT ?", (self.batch_size, ))
     samples = c.fetchmany(self.batch_size)
     
     return samples
@@ -162,15 +166,23 @@ class SimpleBatchGenerator(keras.utils.Sequence):
   # A keras.utils.Sequence object must impement __len__ function
   def __len__(self):
     if self.mode == "training":
-      return self.N_training
+      return np.ceil(self.N_training/float(self.batch_size))
     elif self.mode == "validation":
-      return self.N_validation
+      return np.ceil(self.N_validation/float(self.batch_size))
     elif self.mode == "test":
-      return self.N_test
+      return np.ceil(self.N_test/float(self.batch_size))
     return
   
   # A keras.utils.Sequence object must impement __getitem__ function
   def __getitem__(self, index):
+    
+    try:
+      self.tarining_conn
+      self.validation_conn
+      self.test_conn
+    except:
+      self._load_data()
+        
     if self.mode == "training":
       c = self.training_conn.cursor()
     elif self.mode == "validation":
@@ -183,7 +195,15 @@ class SimpleBatchGenerator(keras.utils.Sequence):
     query="SELECT events, err_signal, parity, length FROM data ORDER BY RANDOM() LIMIT " + str(self.batch_size) + " OFFSET " + str(index*self.batch_size)
     c.execute(query)
     samples = c.fetchall()
-    return samples
+
+    #This is the indexth batch
+    X_batch=[]
+    y_batch=[]
+    for j in range(self.batch_size):
+      X,y=self._get_batch_from_sample(samples[j])
+      X_batch.append(X)
+      y_batch.append(y)
+    return (np.array(X_batch), np.array(y_batch))
 
 
 

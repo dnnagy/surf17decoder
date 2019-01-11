@@ -1,7 +1,7 @@
 import keras
 from keras.models import Sequential
 from keras.models import Model
-from keras.layers import Input, Dense, LSTM, Concatenate
+from keras.layers import Input, Dense, LSTM, Flatten, Concatenate
 from keras.optimizers import SGD
 from keras.layers.normalization import BatchNormalization
 
@@ -21,6 +21,7 @@ class SimpleDecoder:
         
         x = LSTM(self.hidden_size, return_sequences=True)(input_syndr)
         x = LSTM(self.hidden_size, return_sequences=True)(x)
+        x = Flatten()(x)
         x = Dense(self.hidden_size, activation='relu')(x)
         predictions = Dense(1, activation='softmax')(x)
         
@@ -28,7 +29,7 @@ class SimpleDecoder:
         sgd = SGD(lr = 0.1, momentum = 0.9, decay = 0, nesterov = False)
         
         model = Model(inputs=input_syndr, outputs=predictions)
-        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+        model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
         return model
 
 class BranchedDecoder:
