@@ -3,6 +3,11 @@ import sys
 import sqlite3
 import numpy as np
 import copy
+import time
+
+def print_t(str_):
+  ## 24 hour format ##
+  return print( "[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] " + str_)
 
 from SurfaceCode import SurfaceCode
 """
@@ -30,11 +35,14 @@ class QECDataGenerator:
   [4] Y. Tomita and K. M. Svore, Phys. Rev. A 90, 062320 (2014)
   """
   
-  def __init__(self, filename_base, train_size, validation_size, test_size):
+  def __init__(self, filename_base, train_size, validation_size, test_size, verbose=0):
     self.filename_base = filename_base
     self.train_size = train_size
     self.validation_size = validation_size
     self.test_size = test_size
+    self.verbose=verbose
+    if self.verbose not in [0,1]:
+        raise ValueError("verbose must be either 0 or 1")
 
   def convert_simple(self, data, Nmin, Nmax):
     
@@ -149,11 +157,11 @@ class QECDataGenerator:
     elif mode == 1:
       #N_samples = 10**4
       N_samples = self.validation_size
-      n_steps_min, n_steps_max = 81, 100
+      n_steps_min, n_steps_max = 11, 20
     elif mode == 2:
       #N_samples = 5 * 10**4
       N_samples = self.test_size
-      n_steps_min, n_steps_max = 1, 500
+      n_steps_min, n_steps_max = 1, 20
 
     # Generate seeds.
     seeds = range(N0, N0 + N_samples)
@@ -214,8 +222,11 @@ class QECDataGenerator:
     if mode == 0 or mode == 1:
       # We evaluate the error circuit
       runs = []
-      for seed in seeds:
-        runs.append(surf.make_run(seed=seed, n_steps=n_steps_max, condensed=True))
+      for k in range(len(seeds)):
+        runs.append(surf.make_run(seed=seeds[k], n_steps=n_steps_max, condensed=True))
+        if self.verbose==1:
+            if k%max(N_samples/20, 10)==0:
+               print_t("Steps done:{0}".format(k))
 
       # We remove all data that could not be obtained in an experiment and also
       # data that we do not need in order to to save memory (for example
@@ -236,8 +247,11 @@ class QECDataGenerator:
     if mode == 2:
       # evaluate the error circuit
       runs = []
-      for seed in seeds:
-        runs.append(surf.make_run(seed=seed, n_steps=n_steps_max, condensed=True))
+      for k in range(len(seeds)):
+        runs.append(surf.make_run(seed=seeds[k], n_steps=n_steps_max, condensed=True))
+        if self.verbose==1:
+            if k%max(N_samples/20, 10)==0:
+               print_t("Steps done:{0}".format(k))
 
       # save in database
       c.executemany('REPLACE INTO data VALUES (?, ?, ?, ?, ?, ?)', runs)

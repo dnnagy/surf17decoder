@@ -165,12 +165,19 @@ class SimpleBatchGenerator(keras.utils.Sequence):
   """
   # A keras.utils.Sequence object must impement __len__ function
   def __len__(self):
+    try:
+      self.N_training
+      self.N_validation
+      self.N_test
+    except:
+      self._load_data()
+    
     if self.mode == "training":
-      return np.ceil(self.N_training/float(self.batch_size))
+      return int(np.ceil(self.N_training/float(self.batch_size)))
     elif self.mode == "validation":
-      return np.ceil(self.N_validation/float(self.batch_size))
+      return int(np.ceil(self.N_validation/float(self.batch_size)))
     elif self.mode == "test":
-      return np.ceil(self.N_test/float(self.batch_size))
+      return int(np.ceil(self.N_test/float(self.batch_size)))
     return
   
   # A keras.utils.Sequence object must impement __getitem__ function
