@@ -1,9 +1,14 @@
 import keras
 from keras.models import Sequential
 from keras.models import Model
-from keras.layers import Input, Dense, LSTM, Flatten, Concatenate
+from keras.layers import Input, Dense, LSTM, Flatten, Concatenate, Dropout
 from keras.optimizers import SGD
 from keras.layers.normalization import BatchNormalization
+import time
+
+def print_t(str_):
+  ## 24 hour format ##
+  return print( "[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] " + str_)
 
 """ 
 This is a simple decoder, that gets only the syndromes (without final syndromes)
@@ -21,8 +26,14 @@ class SimpleDecoder:
         
         x = LSTM(self.hidden_size, return_sequences=True)(input_syndr)
         x = LSTM(self.hidden_size, return_sequences=True)(x)
+        x = Dropout(0.5)(x)
+        x = LSTM(self.hidden_size, return_sequences=True)(x)
+        x = LSTM(self.hidden_size, return_sequences=True)(x)
+        x = Dropout(0.5)(x)
         x = Flatten()(x)
-        x = Dense(self.hidden_size, activation='relu')(x)
+        x = Dense(256, activation='relu')(x)
+        x = Dropout(0.25)(x)
+        x = Dense(128, activation='relu')(x)
         predictions = Dense(1, activation='softmax')(x)
         
         # optimizer
@@ -32,5 +43,10 @@ class SimpleDecoder:
         model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
         return model
 
+
+"""
+This is a more advanced model with 2 branches and 
+Merge layer.
+"""
 class BranchedDecoder:
     pass
