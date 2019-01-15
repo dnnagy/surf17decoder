@@ -26,21 +26,22 @@ class SimpleDecoder:
         
         x = LSTM(self.hidden_size, return_sequences=True)(input_syndr)
         x = LSTM(self.hidden_size, return_sequences=True)(x)
-        x = Dropout(0.5)(x)
+        #x = Dropout(0.5)(x)
         x = LSTM(self.hidden_size, return_sequences=True)(x)
         x = LSTM(self.hidden_size, return_sequences=True)(x)
-        x = Dropout(0.5)(x)
+        #x = Dropout(0.5)(x)
         x = Flatten()(x)
         x = Dense(256, activation='relu')(x)
-        x = Dropout(0.25)(x)
+        #x = Dropout(0.25)(x)
         x = Dense(128, activation='relu')(x)
-        predictions = Dense(1, activation='softmax')(x)
+        predictions = Dense(1, activation='sigmoid')(x)
         
         # optimizer
-        sgd = SGD(lr = 0.1, momentum = 0.9, decay = 0, nesterov = False)
+        # lr plot 
+        sgd = SGD(lr = 0.01, momentum = 0.9, decay = 0, nesterov = False)
         
         model = Model(inputs=input_syndr, outputs=predictions)
-        model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
+        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
         return model
 
 

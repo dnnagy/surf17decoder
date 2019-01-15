@@ -153,15 +153,15 @@ class QECDataGenerator:
     if mode == 0:
       #N_samples = 4 * 10**6
       N_samples = self.train_size
-      n_steps_min, n_steps_max = 11, 20
+      n_steps_min, n_steps_max = 199, 200
     elif mode == 1:
       #N_samples = 10**4
       N_samples = self.validation_size
-      n_steps_min, n_steps_max = 11, 20
+      n_steps_min, n_steps_max = 199, 200
     elif mode == 2:
       #N_samples = 5 * 10**4
       N_samples = self.test_size
-      n_steps_min, n_steps_max = 1, 20
+      n_steps_min, n_steps_max = 199, 200
 
     # Generate seeds.
     seeds = range(N0, N0 + N_samples)
@@ -191,14 +191,12 @@ class QECDataGenerator:
     
     if mode == 0 or mode == 1:
       # table for the data
-      c.execute('''CREATE TABLE data (seed, events, err_signal, parity,
-                   length)''')
+      c.execute('''CREATE TABLE data (seed, events, err_signal, parity INT, length)''')
       # seed is unique index
       c.execute('''CREATE UNIQUE INDEX idx_data_seed ON data(seed)''')
     elif mode == 2:
       # table for the data
-      c.execute('''CREATE TABLE data (seed, syndromes, events, fstabs,
-                   err_signal, parities)''')
+      c.execute('''CREATE TABLE data (seed, syndromes, events, fstabs, err_signal, parities)''')
       # seed is unique index
       c.execute('''CREATE UNIQUE INDEX idx_data_seed ON data(seed)''')
 
