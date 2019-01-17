@@ -1231,7 +1231,7 @@ class test_callback(Callback):
     plt.xlabel('fpr')
     plt.ylabel('tpr')
     plt.legend()
-    plt.savefig("SimpleDecoder_e{0}_roc.png".format(epoch))
+    plt.savefig(conf_db_path+"SimpleDecoder_e{0}_roc.png".format(epoch))
     print_t("Epoch {0} roc-auc: {1}".format(epoch, str(round(auc_score,4))))
     return
 
