@@ -74,7 +74,7 @@ class SimpleBatchGenerator(keras.utils.Sequence):
     self.test_conn.close()
     return
 
-  def _fetch_one_record(self):
+  def _fetch_n_records(self, n, offset=0):
     # select data from the corresponding database
     if self.mode == "training":
       c = self.training_conn.cursor()
@@ -85,15 +85,18 @@ class SimpleBatchGenerator(keras.utils.Sequence):
     else:
       raise ValueError("The only allowed data_types are: 'training','validation' and 'test'.")
     
-    query="SELECT events, err_signal, parity, length FROM data ORDER BY RANDOM() LIMIT 1"
+    query="SELECT events, err_signal, parity, length FROM data ORDER BY RANDOM() LIMIT " + str(n)
+    if offset != 0:
+      query=query+" OFFSET " + str(offset)
+
     c.execute(query)
     # c.execute("SELECT events, err_signal, parity, length FROM data ORDER BY RANDOM() LIMIT ?", (1, ))
-    sample = c.fetchmany(1)
+    sample = c.fetchmany(n)
     
     return sample
   
   # fetch n records where the final parity is not null
-  def _fetch_records_nonull(self, n):
+  def _fetch_n_records_nonull(self, n, offset=0):
     
     try:
       self.tarining_conn
@@ -111,7 +114,10 @@ class SimpleBatchGenerator(keras.utils.Sequence):
     else:
       raise ValueError("The only allowed data_types are: 'training','validation' and 'test'.")
     
-    query="SELECT events, err_signal, parity, length FROM data WHERE hex(parity)='01' LIMIT " + str(n)
+    query="SELECT events, err_signal, parity, length FROM data WHERE hex(parity)='01' ORDER BY RANDOM() LIMIT " + str(n)
+    if offset != 0:
+      query=query+" OFFSET " + str(offset)
+    
     c.execute(query)
     samples=c.fetchmany(n)
     return samples
@@ -223,18 +229,28 @@ class SimpleBatchGenerator(keras.utils.Sequence):
     else:
       raise ValueError("The only allowed data_types are: 'training','validation' and 'test'.")
     
-    query="SELECT events, err_signal, parity, length FROM data ORDER BY RANDOM() LIMIT " + str(self.batch_size) + " OFFSET " + str(index*self.batch_size)
+    # Fraction of the samples to be random
+    nrand = int(np.ceil(3*self.batch_size/4))
     
-    c.execute(query)
-    samples = c.fetchall()
+    # Fetch samples from db
+    samples_rand = self._fetch_n_records(nrand, offset=index*self.batch_size)
+    samples_nonull = self._fetch_n_records_nonull(self.batch_size-nrand, offset=0)
 
-    #This is the indexth batch
+    # Store batch 
     X_batch=[]
     y_batch=[]
-    for j in range(self.batch_size):
-      X, y = self._convert_sample(samples[j])
+
+    # Process the fetched samples
+    for sample in samples_rand:
+      X, y = self._convert_sample(sample)
       X_batch.append(X)
       y_batch.append(y)
+    
+    for sample in samples_nonull:
+      X, y = self._convert_sample(sample)
+      X_batch.append(X)
+      y_batch.append(y)
+      
     return (np.array(X_batch), np.array(y_batch))
 
 
