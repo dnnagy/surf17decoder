@@ -18,10 +18,15 @@ import sqlite3
 import numpy as np
 import copy
 
-conf_create_files=False
+conf_generate_ROC_curves=False
+conf_use_early_stop=True
+conf_generate_data=False
+conf_train_size=4*10**3
+conf_val_size=4*10**2
+conf_test_size=100
 conf_cycle_length=200
 conf_epochs=10
-conf_db_prefix='small'
+conf_db_prefix='small'+'_c'+str(conf_cycle_length)
 conf_db_path='./data/'
 
 """ Helper function """
@@ -1284,12 +1289,13 @@ class SimpleDecoder:
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     MAIN CODE
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-datagen=QECDataGenerator(train_size=4*10**3, 
-                         validation_size=4*10**1, 
-                         test_size=10**2, verbose=1)
+datagen=QECDataGenerator(train_size=conf_train_size, 
+                         validation_size=conf_val_size, 
+                         test_size=conf_test_size,
+                         verbose=1)
 
 # generate train data
-if conf_create_files==True:
+if conf_generate_data==True:
     training_fname=datagen.generate(0)
     validation_fname=datagen.generate(1)
     test_fname=datagen.generate(2)
@@ -1305,9 +1311,19 @@ kd=SimpleDecoder(xshape=(conf_cycle_length,8), hidden_size=64)
 model=kd.create_model()
 model.summary()
 
+callbacks = []
+
+if conf_generate_ROC_curves==True:
+    callbacks.append(test_callback())
+
+# Append an early stopping layer
+if conf_use_early_stop==True:
+    early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_acc', min_delta=1e-4, patience=2, verbose=0, mode='max', baseline=None, restore_best_weights=True)
+    callbacks.append(early_stop_callback)
+
 hist=model.fit_generator(generator=bg,
                     epochs=conf_epochs,
                     validation_data=bgv,
                     use_multiprocessing=True,
-                    callbacks=[test_callback()],
+                    callbacks=callbacks,
                     workers=32);
