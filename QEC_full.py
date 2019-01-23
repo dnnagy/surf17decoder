@@ -26,13 +26,14 @@ conf_val_size=4*10**2
 conf_test_size=100
 conf_cycle_length=200
 conf_epochs=10
+conf_verbosity=int(sys.argv[2] or 0)  
 conf_db_prefix='small'+'_c'+str(conf_cycle_length)
 conf_db_path='./data/'
 
 """ Helper function """
 def print_t(str_):
   ## 24 hour format ##
-  return sys.stdout.write( "[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] " + str_)
+  return sys.stdout.write( "[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] " + str_ + "\n")
 
 print_t("conf_generate_data = {0}".format(conf_generate_data))
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -912,7 +913,7 @@ class QECDataGenerator:
       for k in range(len(seeds)):
         runs.append(surf.make_run(seed=seeds[k], n_steps=n_steps_max, condensed=True))
         if self.verbose==1:
-            if k%max(N_samples/20, 10)==0:
+            if k%max(N_samples/(2*10**conf_verbosity), 10)==0:
                print_t("Steps done:{0}".format(k))
 
       # We remove all data that could not be obtained in an experiment and also
@@ -937,7 +938,7 @@ class QECDataGenerator:
       for k in range(len(seeds)):
         runs.append(surf.make_run(seed=seeds[k], n_steps=n_steps_max, condensed=True))
         if self.verbose==1:
-            if k%max(N_samples/20, 10)==0:
+            if k%max(N_samples/(2*10**conf_verbosity), 10)==0:
                print_t("Steps done:{0}".format(k))
 
       # save in database
