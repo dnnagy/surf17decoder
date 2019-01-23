@@ -32,7 +32,7 @@ conf_db_path='./data/'
 """ Helper function """
 def print_t(str_):
   ## 24 hour format ##
-  return print( "[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] " + str_)
+  return sys.stdout.write( "[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] " + str_)
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     Surface code class contains methods to simulate the Surface17 code
