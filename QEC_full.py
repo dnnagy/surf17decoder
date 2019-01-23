@@ -16,9 +16,9 @@ from keras.callbacks import Callback
 
 import sqlite3
 import numpy as np
-import copy
+import copy 
 
-conf_generate_ROC_curves=False
+conf_generate_ROC_curves=bool(sys.argv[1]) || False
 conf_use_early_stop=True
 conf_generate_data=False
 conf_train_size=4*10**3
