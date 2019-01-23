@@ -18,7 +18,7 @@ import sqlite3
 import numpy as np
 import copy 
 
-conf_generate_ROC_curves=bool(sys.argv[1]) || False
+conf_generate_ROC_curves= sys.argv[1].lower() == 'true' or False
 conf_use_early_stop=True
 conf_generate_data=False
 conf_train_size=4*10**3
