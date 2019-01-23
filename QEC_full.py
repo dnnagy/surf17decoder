@@ -18,9 +18,9 @@ import sqlite3
 import numpy as np
 import copy 
 
-conf_generate_ROC_curves= sys.argv[1].lower() == 'true' or False
+conf_generate_ROC_curves=False
 conf_use_early_stop=True
-conf_generate_data=False
+conf_generate_data=sys.argv[1].lower() == 'true' or False
 conf_train_size=4*10**3
 conf_val_size=4*10**2
 conf_test_size=100
@@ -34,6 +34,7 @@ def print_t(str_):
   ## 24 hour format ##
   return sys.stdout.write( "[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] " + str_)
 
+print_t("conf_generate_data = {0}".format(conf_generate_data))
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     Surface code class contains methods to simulate the Surface17 code
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
