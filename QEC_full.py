@@ -21,9 +21,9 @@ import copy
 conf_generate_ROC_curves=False
 conf_use_early_stop=True
 conf_generate_data=sys.argv[1].lower() == 'true' or False
-conf_train_size=4*10**3
-conf_val_size=4*10**2
-conf_test_size=100
+conf_train_size=4*10**2
+conf_val_size=4*10**1
+conf_test_size=10
 conf_cycle_length=200
 conf_epochs=10
 conf_verbosity=int(sys.argv[2] or 0)  
@@ -1320,7 +1320,7 @@ if conf_generate_ROC_curves==True:
 
 # Append an early stopping layer
 if conf_use_early_stop==True:
-    early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_acc', min_delta=1e-4, patience=2, verbose=0, mode='max', baseline=None, restore_best_weights=True)
+    early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_acc', min_delta=1e-4, patience=2, verbose=0, mode='max')
     callbacks.append(early_stop_callback)
 
 hist=model.fit_generator(generator=bg,
