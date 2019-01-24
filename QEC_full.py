@@ -20,12 +20,20 @@ import copy
 
 """Settings of data generation"""
 conf_generate_data=False
-conf_train_size=4*10**4
-conf_val_size=2*10**3
-conf_test_size=10
+conf_train_size=2000 # Use 4*10**4 for big, 2000 for small
+conf_val_size=200 # Use 4*10**3 for big, 200 for small
+conf_test_size=10 # I do not use this
 conf_cycle_length=100
 conf_db_prefix='big'+'_c'+str(conf_cycle_length)
 conf_db_path='./data/'
+
+""" Use Google drive to access data. This is useful when running code from Google Colab. """
+conf_use_gdrive=False
+conf_gdrive_path='/content/gdrive'
+
+if conf_use_gdrive==True:
+    from google.colab import drive
+    drive.mount(conf_gdrive_path)
 
 
 """Settings of model fitting"""
@@ -45,7 +53,6 @@ if len(sys.argv)==4:
  
 """ Helper function """
 def print_t(str_):
-  ## 24 hour format ##
   return sys.stdout.write( "[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] " + str_ + "\n")
 
 """Print settings:"""
@@ -1336,9 +1343,9 @@ else:
     validation_fname=conf_db_path+conf_db_prefix+"_validation.db"
     test_fname=conf_db_path+conf_db_prefix+"_test.db"
 
-if conf_fit_model==True:
-    bg=SimpleBatchGenerator(training_fname, validation_fname, test_fname, batch_size=10, mode='training')
-    bgv=SimpleBatchGenerator(training_fname, validation_fname, test_fname, batch_size=2000, mode='validation')
+def fit_model(file_train, file_val, file_test, batch_size):
+    bg=SimpleBatchGenerator(file_train, file_val, file_test, batch_size=batch_size, mode='training')
+    bgv=SimpleBatchGenerator(file_train, file_val, file_test, batch_size=batch_size, mode='validation')
 
     kd=SimpleDecoder(xshape=(conf_cycle_length,8), hidden_size=64)
     model=kd.create_model()
@@ -1360,3 +1367,7 @@ if conf_fit_model==True:
                         use_multiprocessing=True,
                         callbacks=callbacks,
                         workers=32);
+    return hist
+
+if conf_fit_model==True:
+    fit_model(training_fname, validation_fname, test_fname, batch_size=20)
