@@ -18,24 +18,47 @@ import sqlite3
 import numpy as np
 import copy 
 
-conf_generate_ROC_curves=False
-conf_use_early_stop=True
-conf_generate_data=sys.argv[1].lower() == 'true' or False
-conf_train_size=4*10**2
-conf_val_size=4*10**1
+"""Settings of data generation"""
+conf_generate_data=False
+conf_train_size=4*10**4
+conf_val_size=2*10**3
 conf_test_size=10
-conf_cycle_length=200
-conf_epochs=10
-conf_verbosity=int(sys.argv[2] or 0)  
-conf_db_prefix='small'+'_c'+str(conf_cycle_length)
+conf_cycle_length=100
+conf_db_prefix='big'+'_c'+str(conf_cycle_length)
 conf_db_path='./data/'
 
+
+"""Settings of model fitting"""
+conf_fit_model=False
+conf_generate_ROC_curves=False
+conf_use_early_stop=True
+conf_epochs=10
+
+conf_verbosity=2
+
+
+'''Read args from command line'''
+if len(sys.argv)==4:
+    conf_generate_data = sys.argv[1].lower() == 'true'
+    conf_fit_model = sys.argv[2].lower() == 'true'
+    conf_verbosity = int(sys.argv[3] or 2)
+ 
 """ Helper function """
 def print_t(str_):
   ## 24 hour format ##
   return sys.stdout.write( "[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] " + str_ + "\n")
 
+"""Print settings:"""
+print_t("============================================================")
 print_t("conf_generate_data = {0}".format(conf_generate_data))
+print_t("conf_train_size = {0}".format(conf_train_size))
+print_t("conf_val_size = {0}".format(conf_val_size))
+print_t("conf_cycle_length = {0}".format(conf_cycle_length))
+print_t("")
+print_t("conf_db_path = {0}".format(conf_db_path))
+print_t("conf_fit_model = {0}".format(conf_fit_model))
+print_t("conf_epochs = {0}".format(conf_epochs))
+print_t("============================================================")
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     Surface code class contains methods to simulate the Surface17 code
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -914,7 +937,7 @@ class QECDataGenerator:
         runs.append(surf.make_run(seed=seeds[k], n_steps=n_steps_max, condensed=True))
         if self.verbose==1:
             if k%max(N_samples/(2*10**conf_verbosity), 10)==0:
-               print_t("Steps done:{0}".format(k))
+               print_t("Steps {0} done of total {1}".format(k, len(seeds)))
 
       # We remove all data that could not be obtained in an experiment and also
       # data that we do not need in order to to save memory (for example
@@ -926,6 +949,13 @@ class QECDataGenerator:
       c.executemany('REPLACE INTO data VALUES (?, ?, ?, ?, ?)', runs_processed)
       conn.commit()
       conn.close()
+      """Original above"""
+
+      # Idiotic solution
+    #   q = 'REPLACE INTO data VALUES (?, ?, ?, ?, ?)' + str(runs_processed)
+    #   c.execute(q)
+    #   conn.commit()
+    #   conn.close()
 
     # # # TESTING DATA # # #
 
@@ -939,7 +969,7 @@ class QECDataGenerator:
         runs.append(surf.make_run(seed=seeds[k], n_steps=n_steps_max, condensed=True))
         if self.verbose==1:
             if k%max(N_samples/(2*10**conf_verbosity), 10)==0:
-               print_t("Steps done:{0}".format(k))
+               print_t("Steps {0} done of total {1}".format(k, len(seeds)))
 
       # save in database
       c.executemany('REPLACE INTO data VALUES (?, ?, ?, ?, ?, ?)', runs)
@@ -1306,26 +1336,27 @@ else:
     validation_fname=conf_db_path+conf_db_prefix+"_validation.db"
     test_fname=conf_db_path+conf_db_prefix+"_test.db"
 
-bg=SimpleBatchGenerator(training_fname, validation_fname, test_fname, batch_size=10, mode='training')
-bgv=SimpleBatchGenerator(training_fname, validation_fname, test_fname, batch_size=2000, mode='validation')
+if conf_fit_model==True:
+    bg=SimpleBatchGenerator(training_fname, validation_fname, test_fname, batch_size=10, mode='training')
+    bgv=SimpleBatchGenerator(training_fname, validation_fname, test_fname, batch_size=2000, mode='validation')
 
-kd=SimpleDecoder(xshape=(conf_cycle_length,8), hidden_size=64)
-model=kd.create_model()
-model.summary()
+    kd=SimpleDecoder(xshape=(conf_cycle_length,8), hidden_size=64)
+    model=kd.create_model()
+    model.summary()
 
-callbacks = []
+    callbacks = []
 
-if conf_generate_ROC_curves==True:
-    callbacks.append(test_callback())
+    if conf_generate_ROC_curves==True:
+        callbacks.append(test_callback())
 
-# Append an early stopping layer
-if conf_use_early_stop==True:
-    early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_acc', min_delta=1e-4, patience=2, verbose=0, mode='max')
-    callbacks.append(early_stop_callback)
+    # Append an early stopping layer
+    if conf_use_early_stop==True:
+        early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_acc', min_delta=1e-4, patience=2, verbose=0, mode='max')
+        callbacks.append(early_stop_callback)
 
-hist=model.fit_generator(generator=bg,
-                    epochs=conf_epochs,
-                    validation_data=bgv,
-                    use_multiprocessing=True,
-                    callbacks=callbacks,
-                    workers=32);
+    hist=model.fit_generator(generator=bg,
+                        epochs=conf_epochs,
+                        validation_data=bgv,
+                        use_multiprocessing=True,
+                        callbacks=callbacks,
+                        workers=32);
