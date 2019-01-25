@@ -1343,11 +1343,18 @@ else:
     validation_fname=conf_db_path+conf_db_prefix+"_validation.db"
     test_fname=conf_db_path+conf_db_prefix+"_test.db"
 
-def fit_model(file_train, file_val, file_test, batch_size):
+def fit_model(file_train,
+              file_val,
+              file_test,
+              batch_size,
+              cycle_length=conf_cycle_length,
+              early_stop=conf_use_early_stop,
+              early_stop_min_delta=1e-4,
+              n_workers=4):
     bg=SimpleBatchGenerator(file_train, file_val, file_test, batch_size=batch_size, mode='training')
     bgv=SimpleBatchGenerator(file_train, file_val, file_test, batch_size=batch_size, mode='validation')
 
-    kd=SimpleDecoder(xshape=(conf_cycle_length,8), hidden_size=64)
+    kd=SimpleDecoder(xshape=(cycle_length, 8), hidden_size=64)
     model=kd.create_model()
     model.summary()
 
@@ -1357,8 +1364,8 @@ def fit_model(file_train, file_val, file_test, batch_size):
         callbacks.append(test_callback())
 
     # Append an early stopping layer
-    if conf_use_early_stop==True:
-        early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_acc', min_delta=1e-4, patience=2, verbose=0, mode='max')
+    if early_stop==True:
+        early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_acc', min_delta=early_stop_min_delta, patience=2, verbose=0, mode='max')
         callbacks.append(early_stop_callback)
 
     hist=model.fit_generator(generator=bg,
@@ -1366,8 +1373,8 @@ def fit_model(file_train, file_val, file_test, batch_size):
                         validation_data=bgv,
                         use_multiprocessing=True,
                         callbacks=callbacks,
-                        workers=32);
-    return hist
+                        workers=n_workers);
+    return model, hist
 
 if conf_fit_model==True:
     fit_model(training_fname, validation_fname, test_fname, batch_size=20)
