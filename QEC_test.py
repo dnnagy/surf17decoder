@@ -18,6 +18,7 @@ for k in range(len(cycle_lengths)):
     """
         Plot roc auc for the best performing model
     """
+    
     """
         Plot val_acc vs epoch number based on history
     """

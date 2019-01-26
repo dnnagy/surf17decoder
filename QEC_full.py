@@ -1350,6 +1350,7 @@ def fit_model(file_train,
               cycle_length=conf_cycle_length,
               early_stop=conf_use_early_stop,
               early_stop_min_delta=1e-4,
+              n_epochs=conf_epochs,
               n_workers=4):
     bg=SimpleBatchGenerator(file_train, file_val, file_test, batch_size=batch_size, mode='training')
     bgv=SimpleBatchGenerator(file_train, file_val, file_test, batch_size=batch_size, mode='validation')
@@ -1369,7 +1370,7 @@ def fit_model(file_train,
         callbacks.append(early_stop_callback)
 
     hist=model.fit_generator(generator=bg,
-                        epochs=conf_epochs,
+                        epochs=n_epochs,
                         validation_data=bgv,
                         use_multiprocessing=True,
                         callbacks=callbacks,
