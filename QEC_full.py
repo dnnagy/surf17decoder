@@ -1040,10 +1040,10 @@ class SimpleBatchGenerator(keras.utils.Sequence):
     self.N_training = len(self.training_keys)
     self.N_validation = len(self.validation_keys)
     self.N_test = len(self.test_keys)
-    all_keys = set(self.training_keys + self.validation_keys + self.test_keys)
+    # all_keys = set(self.training_keys + self.validation_keys + self.test_keys)
         
-    if len(all_keys) < self.N_training + self.N_validation + self.N_test:
-      raise ValueError("There is overlap between the seeds of the training,  validation, and test sets. This"
+    # if len(all_keys) < self.N_training + self.N_validation + self.N_test:
+    #   raise ValueError("There is overlap between the seeds of the training,  validation, and test sets. This"
                          "is bad practice")
       print("loaded databases and checked exclusiveness training, "
               "validation, and test keys")
