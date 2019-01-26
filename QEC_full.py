@@ -1044,11 +1044,11 @@ class SimpleBatchGenerator(keras.utils.Sequence):
         
     # if len(all_keys) < self.N_training + self.N_validation + self.N_test:
     #   raise ValueError("There is overlap between the seeds of the training,  validation, and test sets. This"
-                         "is bad practice")
-      print("loaded databases and checked exclusiveness training, "
-              "validation, and test keys")
-      print("self.N_training=" + str(self.N_training) + ", self.N_validaiton=" + 
-            str(self.N_validation) + ", self.N_test=" + str(self.N_test) + ".")
+    #                      "is bad practice")
+    #   print("loaded databases and checked exclusiveness training, "
+    #           "validation, and test keys")
+    #   print("self.N_training=" + str(self.N_training) + ", self.N_validaiton=" + 
+    #         str(self.N_validation) + ", self.N_test=" + str(self.N_test) + ".")
     return
 
   def _close_databases(self):
