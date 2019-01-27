@@ -1378,7 +1378,7 @@ def fit_model(file_train,
                         callbacks=callbacks,
                         workers=n_workers);
     
-    return model, hist, (bg, bgv)
+    return model, hist, (bgt, bgv)
 
 if conf_fit_model==True:
     fit_model(training_fname, validation_fname, test_fname, batch_size=20)

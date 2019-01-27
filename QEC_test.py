@@ -21,7 +21,7 @@ for k in range(len(cycle_lengths)):
                                early_stop_min_delta=1e-7, 
                                cycle_length=cycle_lengths[k],
                                n_epochs=20,
-                               n_workers=64)
+                               n_workers=96)
     
     """
         Plot roc auc for the best performing model
