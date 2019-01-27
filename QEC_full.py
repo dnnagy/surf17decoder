@@ -1245,7 +1245,7 @@ class SimpleBatchGenerator(keras.utils.Sequence):
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     KERAS CALLBACK
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 class test_callback(Callback):
   def __init__(self):
     self.X = bgv.__getitem__(0)[0]
