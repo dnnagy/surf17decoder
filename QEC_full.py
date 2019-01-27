@@ -1245,6 +1245,7 @@ class SimpleBatchGenerator(keras.utils.Sequence):
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     KERAS CALLBACK
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+from matplotlib import pyplot as plt
 class test_callback(Callback):
   def __init__(self):
     self.X = bgv.__getitem__(0)[0]
@@ -1269,7 +1270,7 @@ class test_callback(Callback):
     
     auc_score = auc(fpr, tpr)
     
-    plt.ioff() ## Turn off interactive mode
+    #plt.ioff() ## Turn off interactive mode
     plt.figure(figsize=(10,6), dpi=196)
     plt.plot(fpr, tpr, label='SimpleDecoder, auc={0}'.format(auc_score))
     plt.xlabel('fpr')
@@ -1303,7 +1304,7 @@ class SimpleDecoder:
         input_syndr = Input(shape=(self.xshape))
         
         x = LSTM(self.hidden_size, return_sequences=True)(input_syndr)
-        #x = LSTM(self.hidden_size, return_sequences=True)(x)
+        x = LSTM(self.hidden_size, return_sequences=True)(x)
         #x = Dropout(0.5)(x)
         x = LSTM(self.hidden_size, return_sequences=True)(x)
         x = LSTM(self.hidden_size, return_sequences=True)(x)
@@ -1352,7 +1353,8 @@ def fit_model(file_train,
               early_stop_min_delta=1e-4,
               n_epochs=conf_epochs,
               n_workers=4):
-    bg=SimpleBatchGenerator(file_train, file_val, file_test, batch_size=batch_size, mode='training')
+    
+    bgt=SimpleBatchGenerator(file_train, file_val, file_test, batch_size=batch_size, mode='training')
     bgv=SimpleBatchGenerator(file_train, file_val, file_test, batch_size=batch_size, mode='validation')
 
     kd=SimpleDecoder(xshape=(cycle_length, 8), hidden_size=64)
@@ -1369,13 +1371,14 @@ def fit_model(file_train,
         early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_acc', min_delta=early_stop_min_delta, patience=2, verbose=0, mode='max')
         callbacks.append(early_stop_callback)
 
-    hist=model.fit_generator(generator=bg,
+    hist=model.fit_generator(generator=bgt,
                         epochs=n_epochs,
                         validation_data=bgv,
                         use_multiprocessing=True,
                         callbacks=callbacks,
                         workers=n_workers);
-    return model, hist
+    
+    return model, hist, (bg, bgv)
 
 if conf_fit_model==True:
     fit_model(training_fname, validation_fname, test_fname, batch_size=20)
