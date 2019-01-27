@@ -1,5 +1,6 @@
 from QEC_full import print_t
 from QEC_full import fit_model
+from sklearn.metrics import roc_curve, auc
 
 cycle_lengths = [100, 150, 200]
 
@@ -27,7 +28,9 @@ for k in range(len(cycle_lengths)):
         Plot roc auc for the best performing model
     """
     X, y = bgt.__getitem__(0)
-    print_t("Batch generated data with shapes: X.shape={0}, y.shape={0}".format(X.shape))
+    y_pred = model.predict(X)
+    fpr, tpr, thr = roc_curve(y, y_pred)
+    print_t("AUC score={0}".format(auc(fpr, tpr)))
     raise StopIteration("End here.")
     """
         Plot val_acc vs epoch number based on history
