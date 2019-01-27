@@ -4,9 +4,9 @@ from sklearn.metrics import roc_curve, auc
 
 cycle_lengths = [100, 150, 200]
 
-train_files = ['small_c{0}_train.db'.format(k) for k in cycle_lengths]
-val_files = ['small_c{0}_validation.db'.format(k) for k in cycle_lengths]
-test_files = ['small_c{0}_test.db'.format(k) for k in cycle_lengths]
+train_files = ['big_c{0}_train.db'.format(k) for k in cycle_lengths]
+val_files = ['big_c{0}_validation.db'.format(k) for k in cycle_lengths]
+test_files = ['big_c{0}_test.db'.format(k) for k in cycle_lengths]
 
 db_path = './data/'
 
