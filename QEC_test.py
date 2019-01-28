@@ -13,11 +13,13 @@ test_files = ['small_c{0}_test.db'.format(k) for k in cycle_lengths]
 
 db_path = './data/' # /content/gdrive/My Drive/deeplea2f18em/qecdata/
 
-baseline=True
+baseline=False
+
+print_t("train_files={}".format(train_files))
 
 for k in range(len(cycle_lengths)):
     print_t("============================================================================")
-    print_t("Fitting model with cycle length {0}".format(cycle_lengths[k]))
+    print_t("Fitting model with cycle length {0}".format(cycle_lengths[k]))    
     print_t("============================================================================")
     model, history, (bgt, bgv) = fit_model(db_path+train_files[k], 
                                db_path+val_files[k],
@@ -26,7 +28,7 @@ for k in range(len(cycle_lengths)):
                                early_stop=True, 
                                early_stop_min_delta=1e-7, 
                                cycle_length=cycle_lengths[k],
-                               n_epochs=20,
+                               n_epochs=50,
                                n_workers=96,
                                baseline=baseline)
 
