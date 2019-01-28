@@ -7,18 +7,18 @@ import time
 
 cycle_lengths = [100, 150, 200]
 
-train_files = ['big_c{0}_train.db'.format(k) for k in cycle_lengths]
-val_files = ['big_c{0}_validation.db'.format(k) for k in cycle_lengths]
-test_files = ['big_c{0}_test.db'.format(k) for k in cycle_lengths]
+train_files = ['small_c{0}_train.db'.format(k) for k in cycle_lengths]
+val_files = ['small_c{0}_validation.db'.format(k) for k in cycle_lengths]
+test_files = ['small_c{0}_test.db'.format(k) for k in cycle_lengths]
 
 db_path = './data/' # /content/gdrive/My Drive/deeplea2f18em/qecdata/
 
 baseline=True
 
 for k in range(len(cycle_lengths)):
-    print_t("======================================================")
+    print_t("============================================================================")
     print_t("Fitting model with cycle length {0}".format(cycle_lengths[k]))
-    print_t("======================================================")
+    print_t("============================================================================")
     model, history, (bgt, bgv) = fit_model(db_path+train_files[k], 
                                db_path+val_files[k],
                                db_path+test_files[k], 
@@ -50,3 +50,5 @@ for k in range(len(cycle_lengths)):
     dfroc.to_csv(datafile_prefix + train_files[k] + "_roc_" + time.strftime("%Y-%m-%d-%H-%M-%S") + ".csv")
     
     print_t("AUC score={0}".format(auc(fpr, tpr)))
+    print_t("{0} done.".format(train_files[k]))
+    print_t("============================================================================")

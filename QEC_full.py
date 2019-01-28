@@ -56,7 +56,7 @@ def print_t(str_):
   return sys.stdout.write( "[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] " + str_ + "\n")
 
 """Print settings:"""
-print_t("============================================================")
+print_t("============================================================================")
 print_t("conf_generate_data = {0}".format(conf_generate_data))
 print_t("conf_train_size = {0}".format(conf_train_size))
 print_t("conf_val_size = {0}".format(conf_val_size))
@@ -65,7 +65,7 @@ print_t("")
 print_t("conf_db_path = {0}".format(conf_db_path))
 print_t("conf_fit_model = {0}".format(conf_fit_model))
 print_t("conf_epochs = {0}".format(conf_epochs))
-print_t("============================================================")
+print_t("============================================================================")
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     Surface code class contains methods to simulate the Surface17 code
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
