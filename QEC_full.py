@@ -1271,13 +1271,13 @@ class test_callback(Callback):
     auc_score = auc(fpr, tpr)
     
     #plt.ioff() ## Turn off interactive mode
-    plt.figure(figsize=(10,6), dpi=196)
-    plt.plot(fpr, tpr, label='SimpleDecoder, auc={0}'.format(auc_score))
-    plt.xlabel('fpr')
-    plt.ylabel('tpr')
-    plt.legend()
-    plt.savefig(conf_db_path+"SimpleDecoder_e{0}_roc.png".format(epoch))
-    print_t("Epoch {0} roc-auc: {1}".format(epoch, str(round(auc_score,4))))
+    # plt.figure(figsize=(10,6), dpi=196)
+    # plt.plot(fpr, tpr, label='SimpleDecoder, auc={0}'.format(auc_score))
+    # plt.xlabel('fpr')
+    # plt.ylabel('tpr')
+    # plt.legend()
+    # plt.savefig(conf_db_path+"SimpleDecoder_e{0}_roc.png".format(epoch))
+    # print_t("Epoch {0} roc-auc: {1}".format(epoch, str(round(auc_score,4))))
     return
 
   def on_batch_begin(self, batch, logs={}):
@@ -1297,7 +1297,6 @@ class SimpleDecoder:
     def __init__(self, xshape, hidden_size=64):
         self.hidden_size=hidden_size
         self.xshape=xshape
-        pass
     
     def create_model(self):
         # This returns a tensor
@@ -1327,6 +1326,29 @@ class SimpleDecoder:
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    BASELINE MODEL
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+class BaselineDecoder:
+    def __init__(self, xshape):
+        self.xshape=xshape
+    
+    def create_model(self):
+        # This returns a tensor
+        input_syndr = Input(shape=(self.xshape))
+        x = Flatten()(input_syndr)
+        #x = Dense(512, activation='relu')(x)
+        #x = Dropout(0.25)(x)
+        x = Dense(128, activation='relu')(x)
+        predictions = Dense(1, activation='sigmoid')(x)
+        
+        model = Model(inputs=input_syndr, outputs=predictions)
+        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+        return model
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    END OF BASELINE MODEL
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     MAIN CODE
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 datagen=QECDataGenerator(train_size=conf_train_size, 
@@ -1352,12 +1374,14 @@ def fit_model(file_train,
               early_stop=conf_use_early_stop,
               early_stop_min_delta=1e-4,
               n_epochs=conf_epochs,
-              n_workers=4):
+              n_workers=4,
+              baseline=False):
     
     bgt=SimpleBatchGenerator(file_train, file_val, file_test, batch_size=batch_size, mode='training')
     bgv=SimpleBatchGenerator(file_train, file_val, file_test, batch_size=batch_size, mode='validation')
 
-    kd=SimpleDecoder(xshape=(cycle_length, 8), hidden_size=64)
+    kd=SimpleDecoder(xshape=(cycle_length, 8), hidden_size=64) if not baseline else BaselineDecoder(xshape=(cycle_length, 8))
+    
     model=kd.create_model()
     model.summary()
 
@@ -1368,7 +1392,11 @@ def fit_model(file_train,
 
     # Append an early stopping layer
     if early_stop==True:
-        early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_acc', min_delta=early_stop_min_delta, patience=2, verbose=0, mode='max')
+        early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_acc',
+                                                            min_delta=early_stop_min_delta, 
+                                                            patience=2, 
+                                                            verbose=0, 
+                                                            mode='max')
         callbacks.append(early_stop_callback)
 
     hist=model.fit_generator(generator=bgt,
