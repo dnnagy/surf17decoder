@@ -44,7 +44,7 @@ def make_test(cycles, file_base, db_path):
     dfroc.to_csv(datafile_prefix + '_' + file_base + '_c' + str(cycles) + "_roc_" + time.strftime("%Y-%m-%d-%H-%M-%S") + ".csv")
     
     print_t("AUC score={0}".format(auc(fpr, tpr)))
-    print_t("{0} done.".format(train_file))
+    print_t("{0} done.".format(file_base + "_c" + str(cycles)))
     print_t("============================================================================")
     
     return
