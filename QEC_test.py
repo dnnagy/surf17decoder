@@ -52,4 +52,4 @@ def make_test(cycles, file_base, db_path):
 
 db_path = './data/' # /content/gdrive/My Drive/deeplea2f18em/qecdata/
 cycles = 150
-make_test(cycles, "small", db_path)
+make_test(cycles, "bigger", db_path)
