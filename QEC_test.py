@@ -6,16 +6,16 @@ import numpy as np
 import time
 
 
-def make_test(cycles, train_file, val_file, test_file):
+def make_test(cycles, file_base, db_path):
     print_t("============================================================================")
     print_t("Fitting model with cycle length {0}".format(cycles))    
     print_t("============================================================================")
 
     fit_baseline=False
 
-    model, history, (bgt, bgv) = fit_model(train_file, 
-                               val_file,
-                               test_file, 
+    model, history, (bgt, bgv) = fit_model(db_path + file_base + "_c" + str(cycles) + '_train.db', 
+                               db_path + file_base + "_c" + str(cycles) + '_validation.db',
+                               db_path + file_base + "_c" + str(cycles) + '_test.db', 
                                batch_size=64, 
                                early_stop=True, 
                                early_stop_min_delta=1e-7, 
@@ -28,7 +28,7 @@ def make_test(cycles, train_file, val_file, test_file):
     
     # Save history to a file
     dfhist = pd.DataFrame(history.history)
-    dfhist.to_csv(datafile_prefix + '_c' + str(cycles) + "_history_" + time.strftime("%Y-%m-%d-%H-%M-%S") + ".csv")
+    dfhist.to_csv(datafile_prefix + '_' + file_base + '_c' + str(cycles) + "_history_" + time.strftime("%Y-%m-%d-%H-%M-%S") + ".csv")
 
     # Calculate roc_auc and save fpr, tpr as a DataFrame
     Xs = [bgv.__getitem__(k)[0] for k in range(min(len(bgv), int(np.ceil(4000/bgv.batch_size))))]
@@ -41,7 +41,7 @@ def make_test(cycles, train_file, val_file, test_file):
     fpr, tpr, thr = roc_curve(ys[:,0], y_pred[:,0])
     
     dfroc = pd.DataFrame({'fpr':np.array(fpr), 'tpr': np.array(tpr)})
-    dfroc.to_csv(datafile_prefix + '_c' + str(cycles) + "_roc_" + time.strftime("%Y-%m-%d-%H-%M-%S") + ".csv")
+    dfroc.to_csv(datafile_prefix + '_' + file_base + '_c' + str(cycles) + "_roc_" + time.strftime("%Y-%m-%d-%H-%M-%S") + ".csv")
     
     print_t("AUC score={0}".format(auc(fpr, tpr)))
     print_t("{0} done.".format(train_file))
@@ -52,7 +52,4 @@ def make_test(cycles, train_file, val_file, test_file):
 
 db_path = './data/' # /content/gdrive/My Drive/deeplea2f18em/qecdata/
 cycles = 150
-make_test(cycles, 
-          db_path + 'big_c{0}_train.db'.format(cycles),
-          db_path + 'big_c{0}_validation.db'.format(cycles),
-          db_path + 'big_c{0}_test.db'.format(cycles))
+make_test(cycles, "small", db_path)
