@@ -1394,7 +1394,7 @@ def fit_model(file_train,
     if early_stop==True:
         early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_acc',
                                                             min_delta=early_stop_min_delta, 
-                                                            patience=max(1, int(np.ceil(n_epochs/20))), 
+                                                            patience=min(10, max(1, int(np.ceil(n_epochs/20)))), 
                                                             verbose=0, 
                                                             mode='max')
         callbacks.append(early_stop_callback)

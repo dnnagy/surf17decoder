@@ -53,6 +53,6 @@ def make_test(cycles, train_file, val_file, test_file):
 db_path = './data/' # /content/gdrive/My Drive/deeplea2f18em/qecdata/
 cycles = 150
 make_test(cycles, 
-          db_path + 'small_c{0}_train.db'.format(cycles),
-          db_path + 'small_c{0}_validation.db'.format(cycles),
-          db_path + 'small_c{0}_test.db'.format(cycles))
+          db_path + 'big_c{0}_train.db'.format(cycles),
+          db_path + 'big_c{0}_validation.db'.format(cycles),
+          db_path + 'big_c{0}_test.db'.format(cycles))
