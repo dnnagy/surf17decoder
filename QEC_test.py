@@ -28,7 +28,7 @@ def make_test(cycles, train_file, val_file, test_file):
     
     # Save history to a file
     dfhist = pd.DataFrame(history.history)
-    dfhist.to_csv(datafile_prefix + train_file + "_history_" + time.strftime("%Y-%m-%d-%H-%M-%S") + ".csv")
+    dfhist.to_csv(datafile_prefix + '_c' + str(cycles) + "_history_" + time.strftime("%Y-%m-%d-%H-%M-%S") + ".csv")
 
     # Calculate roc_auc and save fpr, tpr as a DataFrame
     Xs = [bgv.__getitem__(k)[0] for k in range(min(len(bgv), int(np.ceil(4000/bgv.batch_size))))]
@@ -41,7 +41,7 @@ def make_test(cycles, train_file, val_file, test_file):
     fpr, tpr, thr = roc_curve(ys[:,0], y_pred[:,0])
     
     dfroc = pd.DataFrame({'fpr':np.array(fpr), 'tpr': np.array(tpr)})
-    dfroc.to_csv(datafile_prefix + train_file + "_roc_" + time.strftime("%Y-%m-%d-%H-%M-%S") + ".csv")
+    dfroc.to_csv(datafile_prefix + '_c' + str(cycles) + "_roc_" + time.strftime("%Y-%m-%d-%H-%M-%S") + ".csv")
     
     print_t("AUC score={0}".format(auc(fpr, tpr)))
     print_t("{0} done.".format(train_file))
