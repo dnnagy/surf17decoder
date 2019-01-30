@@ -1196,7 +1196,7 @@ class SimpleBatchGenerator(keras.utils.Sequence):
   
   # A keras.utils.Sequence object must impement __getitem__ function
   def __getitem__(self, index):
-    
+    start = time.time()
     try:
       self.tarining_conn
       self.validation_conn
@@ -1234,7 +1234,8 @@ class SimpleBatchGenerator(keras.utils.Sequence):
       X, y = self._convert_sample(sample)
       X_batch.append(X)
       y_batch.append(y)
-      
+    
+    print_t("Batch generated in {}ms".format(np.ceil(1000*(time.time()-start))))
     return (np.array(X_batch), np.array(y_batch))
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
